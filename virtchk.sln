@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "virtchk", "virtchk\virtchk.vcxproj", "{3A04A8EB-A4CC-496B-8DA7-5CBA382045DC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "virtchk_drv", "virtchk_drv\virtchk_drv.vcxproj", "{BCEC3522-4D15-490E-96CF-7EC00EF61549}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A04A8EB-A4CC-496B-8DA7-5CBA382045DC}.Debug|Win32.ActiveCfg = Debug|x64
+		{3A04A8EB-A4CC-496B-8DA7-5CBA382045DC}.Debug|x64.ActiveCfg = Debug|x64
+		{3A04A8EB-A4CC-496B-8DA7-5CBA382045DC}.Debug|x64.Build.0 = Debug|x64
+		{3A04A8EB-A4CC-496B-8DA7-5CBA382045DC}.Release|Win32.ActiveCfg = Debug|x64
+		{3A04A8EB-A4CC-496B-8DA7-5CBA382045DC}.Release|x64.ActiveCfg = Debug|x64
+		{3A04A8EB-A4CC-496B-8DA7-5CBA382045DC}.Release|x64.Build.0 = Debug|x64
+		{BCEC3522-4D15-490E-96CF-7EC00EF61549}.Debug|Win32.ActiveCfg = Debug|x64
+		{BCEC3522-4D15-490E-96CF-7EC00EF61549}.Debug|x64.ActiveCfg = Debug|x64
+		{BCEC3522-4D15-490E-96CF-7EC00EF61549}.Debug|x64.Build.0 = Debug|x64
+		{BCEC3522-4D15-490E-96CF-7EC00EF61549}.Release|Win32.ActiveCfg = Debug|x64
+		{BCEC3522-4D15-490E-96CF-7EC00EF61549}.Release|x64.ActiveCfg = Debug|x64
+		{BCEC3522-4D15-490E-96CF-7EC00EF61549}.Release|x64.Build.0 = Debug|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

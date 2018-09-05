@@ -1,0 +1,22 @@
+﻿Build started 9/3/2018 5:20:54 PM.
+     1>Project "D:\Projects\virtchk\virtchk\virtchk.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "D:\Projects\virtchk\x64\Debug\Intermediate\virtchk.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\WinDDK\7600.16385.1\bin\x86\amd64\CL.exe /c /Zi /nologo /W3 /WX /Od /Ob1 /Oi /D _WIN64 /D _M_AMD64 /D _AMD64_ /D _MBCS /D _MBCS /GS- /Gy /fp:precise /Zc:wchar_t /Zc:forScope /FAcs /Fa"D:\Projects\virtchk\x64\Debug\Intermediate\\" /Fo"D:\Projects\virtchk\x64\Debug\Intermediate\\" /Fd"D:\Projects\virtchk\x64\Debug\Intermediate\vc100.pdb" /Gd /TC /errorReport:prompt virtchk.c
+         virtchk.c
+       ResourceCompile:
+         All outputs are up-to-date.
+       Link:
+         C:\WinDDK\7600.16385.1\bin\x86\amd64\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Projects\virtchk\x64\Debug\virtchk.exe" /NOLOGO kernel32.lib msvcrt.lib advapi32.lib /DEBUG /PDB:"D:\Projects\virtchk\x64\Debug\virtchk.pdb" /SUBSYSTEM:CONSOLE /OPT:REF /TLBID:1 /ENTRY:"vtc_main" /IMPLIB:"D:\Projects\virtchk\x64\Debug\virtchk.lib" /MACHINE:X64 D:\Projects\virtchk\x64\Debug\Intermediate\vtcres.res
+         D:\Projects\virtchk\x64\Debug\Intermediate\drvload.obj
+         D:\Projects\virtchk\x64\Debug\Intermediate\virtchk.obj
+         virtchk.vcxproj -> D:\Projects\virtchk\x64\Debug\virtchk.exe
+       FinalizeBuildStatus:
+         Deleting file "D:\Projects\virtchk\x64\Debug\Intermediate\virtchk.unsuccessfulbuild".
+         Touching "D:\Projects\virtchk\x64\Debug\Intermediate\virtchk.lastbuildstate".
+     1>Done Building Project "D:\Projects\virtchk\virtchk\virtchk.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.24

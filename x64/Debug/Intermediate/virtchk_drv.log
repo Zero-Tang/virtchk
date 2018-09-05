@@ -1,0 +1,40 @@
+﻿Build started 9/3/2018 5:20:54 PM.
+     1>Project "D:\Projects\virtchk\virtchk_drv\virtchk_drv.vcxproj" on node 3 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "D:\Projects\virtchk\x64\Debug\Intermediate\virtchk_drv.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         All outputs are up-to-date.
+       Link:
+         C:\WinDDK\7600.16385.1\bin\x86\amd64\link.exe /ERRORREPORT:PROMPT /OUT:"D:\Projects\virtchk\x64\Debug\virtchk.sys" /NOLOGO ntoskrnl.lib /DEBUG /PDB:"D:\Projects\virtchk\x64\Debug\virtchk.pdb" /SUBSYSTEM:NATIVE /Driver /OPT:REF /TLBID:1 /ENTRY:"DriverEntry" /IMPLIB:"D:\Projects\virtchk\x64\Debug\virtchk.lib" /MACHINE:X64 D:\Projects\virtchk\x64\Debug\Intermediate\driver.obj
+         virtchk_drv.vcxproj -> D:\Projects\virtchk\x64\Debug\virtchk.sys
+       PostBuildEvent:
+         signtool sign /v /f .\tpxtest.pfx D:\Projects\virtchk\x64\Debug\virtchk.sys
+         :VCEnd
+         The following certificate was selected:
+             Issued to: tangptr@126.com
+         
+             Issued by: tangptr@126.com
+         
+             Expires:   Sat Dec 31 19:59:59 2039
+         
+             SHA1 hash: E46E0FBD5437E78DBDA34136C6ACD605ED03D1C2
+         
+         
+         Done Adding Additional Store
+         Successfully signed: D:\Projects\virtchk\x64\Debug\virtchk.sys
+         
+         
+         Number of files successfully Signed: 1
+         
+         Number of warnings: 0
+         
+         Number of errors: 0
+         
+       FinalizeBuildStatus:
+         Deleting file "D:\Projects\virtchk\x64\Debug\Intermediate\virtchk_drv.unsuccessfulbuild".
+         Touching "D:\Projects\virtchk\x64\Debug\Intermediate\virtchk_drv.lastbuildstate".
+     1>Done Building Project "D:\Projects\virtchk\virtchk_drv\virtchk_drv.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.19
