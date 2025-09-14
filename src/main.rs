@@ -1,11 +1,172 @@
 #![no_std]
 #![no_main]
 
+use core::arch::x86_64::{__cpuid, _bittest};
+
+use static_collections::string::StaticString;
+
 #[cfg(windows)] mod win;
+
+fn get_vendor_string()->StaticString<12>
+{
+	let r=unsafe{__cpuid(0)};
+	let mut vstr:StaticString<12>=StaticString::new();
+	macro_rules! push_u32
+	{
+		($reg:tt) =>
+		{
+			{
+				let s=r.$reg.to_le_bytes();
+				let _=vstr.push_str(unsafe{str::from_utf8_unchecked(&s)});
+			}
+		};
+	}
+	push_u32!(ebx);
+	push_u32!(edx);
+	push_u32!(ecx);
+	vstr.truncate_to_nul();
+	vstr
+}
+
+fn get_processor_brand()->StaticString<48>
+{
+	let mut pstr:StaticString<48>=StaticString::new();
+	for a in 0x80000002..=0x80000004
+	{
+		let r=unsafe{__cpuid(a)};
+		macro_rules! push_u32
+		{
+			($reg:tt) =>
+			{
+				{
+					let s=r.$reg.to_le_bytes();
+					let _=pstr.push_str(unsafe{str::from_utf8_unchecked(&s)});
+				}
+			};
+		}
+		push_u32!(eax);
+		push_u32!(ebx);
+		push_u32!(ecx);
+		push_u32!(edx);
+	}
+	pstr.truncate_to_nul();
+	pstr
+}
+
+fn has_vmx_and_hv()->(bool,bool)
+{
+	let r=unsafe{__cpuid(1)};
+	let vmx=unsafe{_bittest((&raw const r.ecx).cast(),5)}!=0;
+	let hv=unsafe{_bittest((&raw const r.ecx).cast(),31)}!=0;
+	(vmx,hv)
+}
+
+fn has_svm()->bool
+{
+	let r=unsafe{__cpuid(0x80000001)};
+	unsafe
+	{
+		_bittest((&raw const r.ecx).cast(),2)!=0
+	}
+}
+
+fn get_hypervisor_vendor()->(u32,StaticString<12>)
+{
+	let mut vstr:StaticString<12>=StaticString::new();
+	let r=unsafe{__cpuid(0x40000000)};
+	macro_rules! push_u32
+	{
+		($reg:tt) =>
+		{
+			{
+				let s=r.$reg.to_le_bytes();
+				let _=vstr.push_str(unsafe{str::from_utf8_unchecked(&s)});
+			}
+		};
+	}
+	push_u32!(ebx);
+	push_u32!(ecx);
+	push_u32!(edx);
+	vstr.truncate_to_nul();
+	(r.eax,vstr)
+}
+
+static SVM_EDX_FEATURE_NAMES:[Option<&'static str>;32]=
+[
+	Some("Nested Paging"),
+	Some("LBR Virtualization"),
+	Some("SVM Lock"),
+	Some("Next RIP Saving"),
+	Some("TSC Rate MSR"),
+	Some("VMCB Clean Bits"),
+	Some("Flush by ASID"),
+	Some("Decode Assists"),
+	Some("PMC Virtualization"),
+	None,
+	Some("Pause Filter"),
+	None,
+	Some("Pause Filter Threshold"),
+	Some("AVIC (Advanced Virtual Interrupt Controller)"),
+	None,
+	Some("VMSAVE/VMLOAD Virtualization"),
+	Some("Virtual GIF"),
+	Some("Guest Mode Execution Trap"),
+	Some("x2AVIC (x2APIC Virtualization)"),
+	Some("SVM Supervisor Shadow Stack Restrictions"),
+	Some("SPEC_CTRL Virtualization"),
+	Some("Read-Only Guest Page Tables"),
+	None,
+	Some("Host MCE Override"),
+	Some("INVLPGB/TLBSYNC Support and Interception"),
+	Some("NMI Virtualization"),
+	Some("IBS Virtualization"),
+	Some("Extended Interrupt LVT AVIC Access Changes"),
+	Some("Guest VMCB Address Check"),
+	Some("Bus Lock Threshold"),
+	Some("Idle HLT Intercept"),
+	None
+];
 
 fn main()
 {
-	println!("Hello world!");
+	let vstr=get_vendor_string();
+	let pstr=get_processor_brand();
+	println!("CPU Vendor: {}",vstr);
+	println!("CPU Brand: {}",pstr);
+	let (vmx,hv)=has_vmx_and_hv();
+	let svm=has_svm();
+	if vmx
+	{
+		println!("Intel VT-x is supported!");
+	}
+	else if svm
+	{
+		println!("AMD-V is supported!");
+		let r=unsafe{__cpuid(0x8000000A)};
+		println!("SVM Revision Number: {}",r.eax&0xFF);
+		println!("Number of available ASIDs: {}",r.ebx);
+		for i in 0..32
+		{
+			if unsafe{_bittest((&raw const r.edx).cast(),i)}!=0
+			{
+				match SVM_EDX_FEATURE_NAMES[i as usize]
+				{
+					Some(name)=>println!("{name} is supported!"),
+					None=>println!("Reserved feature #{i} is supported!")
+				}
+			}
+		}
+	}
+	else
+	{
+		println!("No hardware-accelerated virtualization technology is supported!");
+	}
+	if hv
+	{
+		let (max_hv_leaf,hv_vstr)=get_hypervisor_vendor();
+		println!("Hypervisor is detected! Maximum Leaf: 0x{max_hv_leaf:X}");
+		println!("Hypervisor Vendor: {}",hv_vstr);
+	}
 }
 
 #[cfg(not(test))]

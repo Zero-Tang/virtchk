@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "static-collections"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b44b37b294fb9535ed6dbc1a2fb4f5f007282af773820923f03f30add6db617c"
+checksum = "aaa27841da1472d6e4e912aa0d93f1c733a5a45bff35226270b1e5f41ae70bbe"
 
 [[package]]
 name = "virtchk"
