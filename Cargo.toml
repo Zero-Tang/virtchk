@@ -1,10 +1,11 @@
 [package]
 name = "virtchk"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 [profile.dev]
 panic = "abort"
+debug = "full"
 
 [profile.release]
 panic = "abort"
@@ -12,6 +13,10 @@ panic = "abort"
 [target.'cfg(windows)'.dependencies.windows-sys]
 version = "0.61.0"
 features = ["Win32_System_Console","Win32_System_Threading","Win32_System_Kernel"]
+
+[target.'cfg(unix)'.dependencies.libc]
+version = "0.2.175"
+default-features = false
 
 [dependencies]
 static-collections = "0.1.1"

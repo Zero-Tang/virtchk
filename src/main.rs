@@ -1,11 +1,28 @@
 #![no_std]
 #![no_main]
 
+#[cfg(target_arch="x86_64")]
 use core::arch::x86_64::{__cpuid, _bittest};
+#[cfg(target_arch="x86")]
+use core::arch::x86::{__cpuid, _bittest};
 
 use static_collections::string::StaticString;
 
 #[cfg(windows)] mod win;
+#[cfg(unix)] mod linux;
+
+#[macro_export]
+macro_rules! println
+{
+	()=>
+	{
+		$crate::print!("\n")
+	};
+	($($arg:tt)*)=>
+	{
+		$crate::print!("{}\n",format_args!($($arg)*))
+	};
+}
 
 fn get_vendor_string()->StaticString<12>
 {

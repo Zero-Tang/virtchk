@@ -37,19 +37,6 @@ macro_rules! print
 	};
 }
 
-#[macro_export]
-macro_rules! println
-{
-	()=>
-	{
-		$crate::print!("\n")
-	};
-	($($arg:tt)*)=>
-	{
-		$crate::print!("{}\n",format_args!($($arg)*))
-	};
-}
-
 #[unsafe(no_mangle)] extern "C" fn msvc_start(peb:*const PEB)->NTSTATUS
 {
 	unsafe

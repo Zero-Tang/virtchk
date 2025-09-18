@@ -3,6 +3,12 @@
 version = 4
 
 [[package]]
+name = "libc"
+version = "0.2.175"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543"
+
+[[package]]
 name = "static-collections"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10,8 +16,9 @@ checksum = "aaa27841da1472d6e4e912aa0d93f1c733a5a45bff35226270b1e5f41ae70bbe"
 
 [[package]]
 name = "virtchk"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
+ "libc",
  "static-collections",
  "windows-sys",
 ]
