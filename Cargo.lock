@@ -10,9 +10,9 @@ checksum = "6a82ae493e598baaea5209805c49bbf2ea7de956d50d7da0da1164f9c6d28543"
 
 [[package]]
 name = "static-collections"
-version = "0.1.2"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdcac1c76154a8d1f4014862e01df6a5ad3c9aabda70e3233b977ab4ecbd54b1"
+checksum = "031e203895bb071e4196fabfabffedff4e0596e8b4b593b862030cbbe4beb5e0"
 
 [[package]]
 name = "virtchk"

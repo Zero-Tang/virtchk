@@ -19,4 +19,4 @@ version = "0.2.175"
 default-features = false
 
 [dependencies]
-static-collections = "0.1.2"
+static-collections = "0.2.0"

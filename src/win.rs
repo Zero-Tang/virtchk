@@ -1,7 +1,7 @@
 // Windows runtime
 use core::{arch::x86_64::_bittest, ffi::{c_void, CStr}, fmt, mem::{offset_of, transmute}, ptr::{null, null_mut}, slice, sync::atomic::{AtomicPtr,Ordering}};
 
-use static_collections::{string::StaticString, vec::StaticVec};
+use static_collections::{ffi::wstring::StaticWString, string::StaticString};
 use windows_sys::{core::HRESULT, Win32::{Foundation::{HANDLE, NTSTATUS, STATUS_SUCCESS, S_OK}, System::{Console::WriteConsoleW, Diagnostics::Debug::{IMAGE_DIRECTORY_ENTRY_EXPORT, IMAGE_NT_HEADERS64}, Hypervisor::{WHvCapabilityCodeExceptionExitBitmap, WHvCapabilityCodeExtendedVmExits, WHvCapabilityCodeFeatures, WHvCapabilityCodeHypervisorPresent, WHvCapabilityCodeX64MsrExitBitmap, WHV_CAPABILITY, WHV_CAPABILITY_CODE}, LibraryLoader::LoadLibraryA, SystemServices::{IMAGE_DOS_HEADER, IMAGE_DOS_SIGNATURE, IMAGE_EXPORT_DIRECTORY, IMAGE_NT_SIGNATURE}, Threading::PEB, WindowsProgramming::LDR_DATA_TABLE_ENTRY}}};
 
 use crate::{main, println};
@@ -95,19 +95,12 @@ impl ModuleHandle
 pub fn internal_print(args:fmt::Arguments)
 {
 	// Use on-stack printer.
-	let mut w:StaticString<1024>=StaticString::new();
+	let mut w:StaticWString<1024>=StaticWString::new();
 	if fmt::write(&mut w,args).is_ok()
 	{
-		// Convert UTF-8 to UTF-16.
-		let mut s:StaticVec<1024,u16>=StaticVec::new();
-		// Do not use `.collect()` method so that we may avoid heap allocation.
-		for x in w.as_str().encode_utf16()
-		{
-			s.push(x);
-		}
 		unsafe
 		{
-			WriteConsoleW(STDOUT_HANDLE,s.as_ptr(),s.len() as u32,null_mut(),null());
+			WriteConsoleW(STDOUT_HANDLE,w.as_ptr(),w.len() as u32,null_mut(),null());
 		}
 	}
 }
