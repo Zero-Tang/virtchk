@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+use core::arch::naked_asm;
 #[cfg(target_arch="x86_64")]
 use core::arch::x86_64::{__cpuid, _bittest};
 #[cfg(target_arch="x86")]
@@ -144,6 +145,72 @@ static SVM_EDX_FEATURE_NAMES:[Option<&'static str>;32]=
 	None
 ];
 
+// Use naked assembly to avoid optimization.
+#[cfg(target_arch="x86_64")]
+#[unsafe(naked)] extern "win64" fn cpuid_latency()->u64
+{
+	naked_asm!
+	(
+		// rdtscp would wait until all previous instructions retire,
+		// then obtains the Time-Stamp Counter.
+		"rdtscp",
+		"mov r8d,eax",
+		"mov r9d,edx",
+		"cpuid",
+		"rdtscp",
+		"shl rdx,32",
+		"shl r9,32",
+		"or rax,rdx",
+		"or r8,r9",
+		"sub rax,r8",
+		"ret"
+	)
+}
+
+#[cfg(target_arch="x86")]
+#[unsafe(naked)] extern "stdcall" fn cpuid_latency()->u64
+{
+	naked_asm!
+	(
+		// rdtscp would wait until all previous instructions retire,
+		// then obtains the Time-Stamp Counter.
+		"rdtscp",
+		"push edx",
+		"push eax",
+		"cpuid",
+		"rdtscp",
+		"pop ecx",
+		"sub eax,ecx",
+		"pop ecx",
+		"sbb edx,ecx",
+		"ret"
+	)
+}
+
+const CPUID_TEST_COUNT:u64=1000000;
+
+fn test_cpuid_latency()
+{
+	let mut sum=0u64;
+	let mut min=u64::MAX;
+	let mut max=0u64;
+	for _ in 0..CPUID_TEST_COUNT
+	{
+		let t=cpuid_latency();
+		sum+=t;
+		if t>max
+		{
+			max=t;
+		}
+		if t<min
+		{
+			min=t;
+		}
+	}
+	let avg=sum/CPUID_TEST_COUNT;
+	println!("CPUID Average TSC: {avg}, Minimum TSC: {min}, Maximum TSC: {max}");
+}
+
 fn main()
 {
 	let vstr=get_vendor_string();
@@ -184,6 +251,7 @@ fn main()
 		println!("Hypervisor is detected! Maximum Leaf: 0x{max_hv_leaf:X}");
 		println!("Hypervisor Vendor: {}",hv_vstr);
 	}
+	test_cpuid_latency();
 }
 
 #[cfg(not(test))]

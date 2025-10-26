@@ -1,8 +1,12 @@
 // Windows runtime
-use core::{arch::x86_64::_bittest, ffi::{c_void, CStr}, fmt, mem::{offset_of, transmute}, ptr::{null, null_mut}, slice, sync::atomic::{AtomicPtr,Ordering}};
+#[cfg(target_arch="x86_64")]
+use core::arch::x86_64::_bittest;
+#[cfg(target_arch="x86")]
+use core::arch::x86::_bittest;
+use core::{ffi::{c_void, CStr}, fmt, mem::{offset_of, transmute}, ptr::{null, null_mut}, slice, sync::atomic::{AtomicPtr,Ordering}};
 
 use static_collections::{ffi::wstring::StaticWString, string::StaticString};
-use windows_sys::{core::HRESULT, Win32::{Foundation::{HANDLE, NTSTATUS, STATUS_SUCCESS, S_OK}, System::{Console::WriteConsoleW, Diagnostics::Debug::{IMAGE_DIRECTORY_ENTRY_EXPORT, IMAGE_NT_HEADERS64}, Hypervisor::{WHvCapabilityCodeExceptionExitBitmap, WHvCapabilityCodeExtendedVmExits, WHvCapabilityCodeFeatures, WHvCapabilityCodeHypervisorPresent, WHvCapabilityCodeX64MsrExitBitmap, WHV_CAPABILITY, WHV_CAPABILITY_CODE}, LibraryLoader::LoadLibraryA, SystemServices::{IMAGE_DOS_HEADER, IMAGE_DOS_SIGNATURE, IMAGE_EXPORT_DIRECTORY, IMAGE_NT_SIGNATURE}, Threading::PEB, WindowsProgramming::LDR_DATA_TABLE_ENTRY}}};
+use windows_sys::{core::HRESULT, Win32::{Foundation::{HANDLE, NTSTATUS, STATUS_SUCCESS, S_OK}, System::{Console::WriteConsoleW, Diagnostics::Debug::*, Hypervisor::{WHvCapabilityCodeExceptionExitBitmap, WHvCapabilityCodeExtendedVmExits, WHvCapabilityCodeFeatures, WHvCapabilityCodeHypervisorPresent, WHvCapabilityCodeX64MsrExitBitmap, WHV_CAPABILITY, WHV_CAPABILITY_CODE}, LibraryLoader::LoadLibraryA, SystemServices::{IMAGE_DOS_HEADER, IMAGE_DOS_SIGNATURE, IMAGE_EXPORT_DIRECTORY, IMAGE_NT_SIGNATURE}, Threading::PEB, WindowsProgramming::LDR_DATA_TABLE_ENTRY}}};
 
 use crate::{main, println};
 
@@ -256,7 +260,14 @@ fn check_whpx()
 	}
 	GLOBAL_PEB.set_base(peb);
 	main();
-	check_whpx();
+	if cfg!(target_arch="x86_64")
+	{
+		check_whpx();
+	}
+	else
+	{
+		println!("32-bit Windows Application cannot use Windows Hypervisor Platform!");
+	}
 	STATUS_SUCCESS
 }
 
