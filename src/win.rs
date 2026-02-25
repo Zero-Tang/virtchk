@@ -203,7 +203,7 @@ fn print_cap_names(whpx_get_cap:WhpxGetCapabilityFn,feat_code:WHV_CAPABILITY_COD
 	let hr:HRESULT=unsafe{whpx_get_cap(feat_code,(&raw mut feat).cast(),size_of::<WHV_CAPABILITY>() as u32,null_mut())};
 	if hr==S_OK
 	{
-		for i in 0..64
+		for i in 0..(names.len() as i32)
 		{
 			let present=unsafe{_bittest((&raw const feat).cast(),i)!=0};
 			if present

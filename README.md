@@ -19,3 +19,11 @@ To compile this project:
 
 Install [rust-lang](https://www.rust-lang.org). \
 Execute `cargo build` command.
+
+## UEFI
+This project supports running on baremetal UEFI. You may confirm the processor's capability without interferance of the OS. (e.g.: Microsoft Hyper-V will run the OS in guest mode.)
+
+If you do not need to run `virtchk` in a virtual machine, execute `cargo build --target x86_64-unknown-uefi` will build `virtchk` as an EFI application. \
+Put the `virtchk.efi` file to a GPT-partitioned USB flash drive with FAT32 file system in path `efi\boot\bootx64.efi`. Boot to your USB flash drive in order to check virtualization capability.
+
+To run `virtchk` in UEFI of a virtual machine, execute the `build-uefi` batch script which will put `virtchk.efi` into virtual disk images.

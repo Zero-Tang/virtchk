@@ -11,6 +11,7 @@ use static_collections::string::StaticString;
 
 #[cfg(windows)] mod win;
 #[cfg(unix)] mod linux;
+#[cfg(target_os="uefi")] mod uefi;
 
 #[macro_export]
 macro_rules! println
@@ -27,7 +28,7 @@ macro_rules! println
 
 fn get_vendor_string()->StaticString<12>
 {
-	let r=unsafe{__cpuid(0)};
+	let r=__cpuid(0);
 	let mut vstr:StaticString<12>=StaticString::new();
 	macro_rules! push_u32
 	{
@@ -51,7 +52,7 @@ fn get_processor_brand()->StaticString<48>
 	let mut pstr:StaticString<48>=StaticString::new();
 	for a in 0x80000002..=0x80000004
 	{
-		let r=unsafe{__cpuid(a)};
+		let r=__cpuid(a);
 		macro_rules! push_u32
 		{
 			($reg:tt) =>
@@ -73,7 +74,7 @@ fn get_processor_brand()->StaticString<48>
 
 fn has_vmx_and_hv()->(bool,bool)
 {
-	let r=unsafe{__cpuid(1)};
+	let r=__cpuid(1);
 	let vmx=unsafe{_bittest((&raw const r.ecx).cast(),5)}!=0;
 	let hv=unsafe{_bittest((&raw const r.ecx).cast(),31)}!=0;
 	(vmx,hv)
@@ -81,7 +82,7 @@ fn has_vmx_and_hv()->(bool,bool)
 
 fn has_svm()->bool
 {
-	let r=unsafe{__cpuid(0x80000001)};
+	let r=__cpuid(0x80000001);
 	unsafe
 	{
 		_bittest((&raw const r.ecx).cast(),2)!=0
@@ -91,7 +92,7 @@ fn has_svm()->bool
 fn get_hypervisor_vendor()->(u32,StaticString<12>)
 {
 	let mut vstr:StaticString<12>=StaticString::new();
-	let r=unsafe{__cpuid(0x40000000)};
+	let r=__cpuid(0x40000000);
 	macro_rules! push_u32
 	{
 		($reg:tt) =>
@@ -189,12 +190,14 @@ static SVM_EDX_FEATURE_NAMES:[Option<&'static str>;32]=
 
 const CPUID_TEST_COUNT:u64=1000000;
 
+#[inline(never)]
 fn test_cpuid_latency()
 {
 	let mut sum=0u64;
 	let mut min=u64::MAX;
 	let mut max=0u64;
-	for _ in 0..CPUID_TEST_COUNT
+	let mut i:u64=0;
+	while i<CPUID_TEST_COUNT
 	{
 		let t=cpuid_latency();
 		sum+=t;
@@ -206,6 +209,7 @@ fn test_cpuid_latency()
 		{
 			min=t;
 		}
+		i+=1;
 	}
 	let avg=sum/CPUID_TEST_COUNT;
 	println!("CPUID Average TSC: {avg}, Minimum TSC: {min}, Maximum TSC: {max}");
@@ -226,7 +230,7 @@ fn main()
 	else if svm
 	{
 		println!("AMD-V is supported!");
-		let r=unsafe{__cpuid(0x8000000A)};
+		let r=__cpuid(0x8000000A);
 		println!("SVM Revision Number: {}",r.eax&0xFF);
 		println!("Number of available ASIDs: {}",r.ebx);
 		for i in 0..32
