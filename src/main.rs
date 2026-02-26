@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use core::arch::naked_asm;
+use core::arch::{asm,naked_asm};
 #[cfg(target_arch="x86_64")]
 use core::arch::x86_64::{__cpuid, _bittest};
 #[cfg(target_arch="x86")]
@@ -110,6 +110,17 @@ fn get_hypervisor_vendor()->(u32,StaticString<12>)
 	(r.eax,vstr)
 }
 
+#[unsafe(naked)] extern "win64" fn rdmsr(index:u32)->u64
+{
+	naked_asm!
+	(
+		"rdmsr",
+		"shl rdx,32",
+		"or rax,rdx",
+		"ret"
+	);
+}
+
 static SVM_EDX_FEATURE_NAMES:[Option<&'static str>;32]=
 [
 	Some("Nested Paging"),
@@ -145,6 +156,96 @@ static SVM_EDX_FEATURE_NAMES:[Option<&'static str>;32]=
 	Some("Idle HLT Intercept"),
 	None
 ];
+
+static VT_PIN_BASED_FEATURES:[Option<&'static str>;32]=
+{
+	let mut a=[None;32];
+	a[0]=Some("External-Interrupt Exiting");
+	a[3]=Some("NMI Exiting");
+	a[5]=Some("Virtual NMIs");
+	a[6]=Some("Activate VMX-preemption Timer");
+	a[7]=Some("Process Posted Interrupts");
+	a
+};
+
+static VT_PRIMARY_PROCESSOR_FEATURES:[Option<&'static str>;32]=
+{
+	let mut a=[None;32];
+	a[2]=Some("Interrupt-Window Exiting");
+	a[3]=Some("Use TSC-Offsetting");
+	a[7]=Some("HLT Exiting");
+	a[9]=Some("INVLPG Exiting");
+	a[10]=Some("MWAIT Exiting");
+	a[11]=Some("RDPMC Exiting");
+	a[12]=Some("RDTSC Exiting");
+	a[15]=Some("CR3-Load Exiting");
+	a[16]=Some("CR3-Store Exiting");
+	a[17]=Some("Activate Tertiary Controls");
+	a[19]=Some("CR8-Load Exiting");
+	a[20]=Some("CR8-Store Exiting");
+	a[21]=Some("Use TPR Shadow");
+	a[22]=Some("NMI-Window Exiting");
+	a[23]=Some("MOV-DR Exiting");
+	a[24]=Some("Unconditional I/O Exiting");
+	a[25]=Some("Use I/O Bitmaps");
+	a[27]=Some("Monitor Trap Flag");
+	a[28]=Some("Use MSR Bitmap");
+	a[29]=Some("MONITOR Exiting");
+	a[30]=Some("PAUSE Exiting");
+	a[31]=Some("Activate Secondary Controls");
+	a
+};
+
+static VT_SECONDARY_PROCESSOR_FEATURES:[Option<&'static str>;32]=
+[
+	Some("Virtualize APIC Accesses"),
+	Some("Enable EPT"),
+	Some("Descriptor-Table Exiting"),
+	Some("Enable RDTSCP"),
+	Some("Virtualize x2APIC Mode"),
+	Some("Enable VPID"),
+	Some("WBINVD Exiting"),
+	Some("Unrestricted Guest"),
+	Some("APIC-Register Virtualization"),
+	Some("Virtual-Interrupt Delivery"),
+	Some("PAUSE-Loop Exiting"),
+	Some("RDRAND Exiting"),
+	Some("Enable INVPCID"),
+	Some("Enable VMFUNC"),
+	Some("VMCS Shadowing"),
+	Some("ENCLS Exiting"),
+	Some("RDSEED Exiting"),
+	Some("Enable PML"),
+	Some("Convert EPT-Violation to #VE"),
+	Some("Conceal VMX from PT"),
+	Some("Enable XSAVES/XRSTORS"),
+	Some("PASID Translation"),
+	Some("EPT Mode-based Execution Control"),
+	Some("EPT Sub-Page Write Permissions"),
+	Some("PT Use GPA"),
+	Some("Use TSC Scaling"),
+	Some("Enable UMWAIT/UMONITOR/TPAUSE"),
+	Some("Enable PCONFIG"),
+	None,
+	None,
+	Some("VMM Bus-Lock Detection"),
+	Some("Instruction Timeout")
+];
+
+static VT_TERTIARY_PROCESSOR_FEATURES:[Option<&'static str>;64]=
+{
+	let mut a=[None;64];
+	a[0]=Some("LOADIWKEY Exiting");
+	a[1]=Some("Enable HLAT");
+	a[2]=Some("EPT Paging-Write Control");
+	a[3]=Some("Guest-Paging Verification");
+	a[4]=Some("IPI Virtualization");
+	a[5]=Some("SEAM GPA Width");
+	a[6]=Some("Enable MSR-List");
+	a[7]=Some("Virtualize IA32_SPEC_CTRL");
+	a[8]=Some("Enable PBNDKB");
+	a
+};
 
 // Use naked assembly to avoid optimization.
 #[cfg(target_arch="x86_64")]
@@ -226,6 +327,68 @@ fn main()
 	if vmx
 	{
 		println!("Intel VT-x is supported!");
+		let cs:u16;
+		unsafe
+		{
+			asm!
+			(
+				"mov {:x},cs",
+				out(reg) cs
+			);
+		}
+		if (cs&3)==0
+		{
+			println!("We're in kernel-mode! Enumerating VMX capability reporting MSRs...");
+			let vt_basic=rdmsr(0x480);
+			let (pin,proc1)=if (vt_basic&(1<<55))!=0
+			{
+				(rdmsr(0x48D),rdmsr(0x48E))
+			}
+			else
+			{
+				(rdmsr(0x481),rdmsr(0x482))
+			};
+			for i in 0..32
+			{
+				let supported=unsafe{_bittest((&raw const pin).cast(),i+32)}!=0;
+				if let Some(name)=VT_PIN_BASED_FEATURES[i as usize]
+				{
+					println!("{name} is {}supported!",if supported {""} else {"un"});
+				}
+			}
+			for i in 0..32
+			{
+				let supported=unsafe{_bittest((&raw const proc1).cast(),i+32)}!=0;
+				if let Some(name)=VT_PRIMARY_PROCESSOR_FEATURES[i as usize]
+				{
+					println!("{name} is {}supported!",if supported {""} else {"un"});
+				}
+			}
+			if (proc1&(1<<63))!=0
+			{
+				let proc2=rdmsr(0x48B);
+				for i in 0..32
+				{
+					let supported=unsafe{_bittest((&raw const proc2).cast(),i+32)}!=0;
+					if let Some(name)=VT_SECONDARY_PROCESSOR_FEATURES[i as usize]
+					{
+						println!("{name} is {}supported!",if supported {""} else {"un"});
+					}
+				}
+			}
+			if (proc1&(1<<49))!=0
+			{
+				let proc3=rdmsr(0x492);
+				for i in 0..64
+				{
+					let supported=unsafe{_bittest((&raw const proc3).cast(),i)}!=0;
+					if let Some(name)=VT_TERTIARY_PROCESSOR_FEATURES[i as usize]
+					{
+						println!("{name} is {}supported!",if supported {""} else {"un"});
+					}
+				}
+			}
+		}
 	}
 	else if svm
 	{
